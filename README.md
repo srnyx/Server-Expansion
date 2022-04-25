@@ -3,7 +3,7 @@
 Adds server-related placeholders.  
 Read the [placeholder page](https://helpch.at/placeholders#server) for a list of placeholders.
 
-- Adds MSPT placeholders (I just copied the changes from https://github.com/ChimneySwift/Server-Expansion):
+- Adds MSPT placeholders (I just copied the changes from [ChimneySwift/Server-Expansion](https://github.com/ChimneySwift/Server-Expansion)):
 ```
 %server_mspt%
 %server_mspt_10s%
