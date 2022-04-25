@@ -388,7 +388,7 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 	private String fix(double tps) {
 		double finalTps = Math.min(Math.round(tps), 20.0);
 		
-		return (tps > 20.0 ? "*" : "") + finalTps;
+		return finalTps;
 	}
 	
 	private String color(double tps) {
@@ -406,7 +406,7 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 	private String getPercent(double tps){
 		double finalPercent = Math.min(Math.round(100 / 20.0 * tps), 100.0);
 		
-		return (tps > 20.0 ? "*" : "") + finalPercent + "%";
+		return finalPercent + "%";
 	}
 	
 	private Integer getChunks(){
