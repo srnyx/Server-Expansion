@@ -20,7 +20,6 @@ It will NOT work with spigot servers.
 
 ## Build Instructions
 
-This is built using [Maven](https://maven.apache.org/).
-You will have to install that first if you don't have it already.
+You can get the latest version from the [Actions page](https://github.com/srnyx/Server-Expansion/actions).
 
-Simply run `mvn install` and the jar should end up in `target/`.
+Or, you can download the source code and then run `gradle build`.
