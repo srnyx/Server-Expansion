@@ -13,6 +13,8 @@ Read the [placeholder page](https://helpch.at/placeholders#server) for a list of
 %server_mspt_1m_colored%
 ```
 - Removes the `*` when TPS goes above 20
+- Uses Gradle
+- Has GitHub workflows/actions
 
 This fork requires [Paper](https://papermc.io).
 It will NOT work with spigot servers.
