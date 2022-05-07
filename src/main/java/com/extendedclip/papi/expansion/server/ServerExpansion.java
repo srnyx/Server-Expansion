@@ -34,7 +34,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.Plugin;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -61,7 +61,7 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 	private String low = "&c";
 	private String medium = "&e";
 	private String high = "&a";
-	private boolean isPapermc = false;
+	private boolean isPaper = false;
 	private TickListener tickListener;
 	// -----
 	
@@ -77,13 +77,14 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 		high = this.getString("tps_color.high", "&a");
 
 		try {
-			isPapermc = Class.forName("com.destroystokyo.paper.VersionHistoryManager$VersionData") != null;
+			//noinspection ConstantConditions
+			isPaper = Class.forName("com.destroystokyo.paper.VersionHistoryManager$VersionData") != null;
 		} catch (ClassNotFoundException ignored) {}
 
-		if (isPapermc) {
-			PluginManager pluginManager = Bukkit.getPluginManager();
+		if (isPaper) {
 			tickListener = new TickListener();
-			pluginManager.registerEvents(tickListener, pluginManager.getPlugin("PlaceholderAPI"));
+			Plugin papi = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
+			if (papi != null) Bukkit.getPluginManager().registerEvents(tickListener, papi);
 		}
 
 		return true;
@@ -187,9 +188,8 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 		if (identifier.startsWith("mspt_")) return getMspt(identifier.replace("mspt_", ""));
 
 		if (identifier.startsWith("online_")) {
-			identifier = identifier.replace("online_", "");
 			int i = 0;
-			for (Player o : Bukkit.getOnlinePlayers()) if (o.getWorld().getName().equals(identifier)) i = i + 1;
+			for (Player o : Bukkit.getOnlinePlayers()) if (o.getWorld().getName().equals(identifier.replace("online_", ""))) i++;
 			return String.valueOf(i);
 		}
 

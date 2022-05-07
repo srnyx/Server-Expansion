@@ -11,19 +11,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TickListener implements Listener {
 
-    private boolean enabled = true;
-
-    private int[] indices = new int[]{0, 0, 0};
-    private double[] averages = new double[]{0d, 0d, 0d};
+    private final int[] indices = new int[]{0, 0, 0};
+    private final double[] averages = new double[]{0d, 0d, 0d};
     private final ConcurrentHashMap<Integer, Double> durations1s = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, Double> durations10s = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, Double> durations1m = new ConcurrentHashMap<>();
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void event(ServerTickEndEvent event) {
-
-        if (!this.enabled) return;
-
         if (this.indices[0] >= 20) this.indices[0] = 1;
         if (this.indices[1] >= 200) this.indices[1] = 1;
         if (this.indices[2] >= 1200) this.indices[2] = 1;
