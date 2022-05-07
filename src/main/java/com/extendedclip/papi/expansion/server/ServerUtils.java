@@ -23,6 +23,7 @@ public final class ServerUtils {
     
     private boolean hasTpsMethod = false;
     
+    @SuppressWarnings("unused")
     public ServerUtils() {
         variants.put("Spigot", "org.spigotmc.SpigotConfig");
         variants.put("Paper", "com.destroystokyo.paper.PaperConfig");
@@ -34,19 +35,16 @@ public final class ServerUtils {
     }
     
     public String getServerVariant() {
-        if (variant != null) {
-            return variant;
-        }
-        
-        for(Map.Entry<String, String> variant : variants.entrySet()) {
+        if (variant != null) return variant;
+
+        for (Map.Entry<String, String> variant : variants.entrySet()) {
             try {
                 Class.forName(variant.getValue());
-                
                 return (this.variant = variant.getKey());
             } catch (ClassNotFoundException ignored) {} 
         }
         
-        return (this.variant = "Unknown");
+        return this.variant = "Unknown";
     }
     
     public String getVersion() {
