@@ -1,5 +1,5 @@
 description = "PAPI-Expansion-Server"
-version = "2.6.2"
+version = "2.6.3"
 group = "com.extendedclip.papi.expansion.server"
 
 repositories {
@@ -10,7 +10,7 @@ repositories {
 dependencies {
     compileOnly("me.clip:placeholderapi:2.10.11")
     compileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
-    implementation("com.github.ben-manes.caffeine:caffeine:1.3.3")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.1.1")
 }
 
 plugins {
@@ -18,12 +18,8 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
-application {
-    mainClass.set("io.ktor.server.netty.EngineMain")
-}
+application.mainClass.set("io.ktor.server.netty.EngineMain")
 
-tasks {
-    compileJava {
-        options.encoding = "UTF-8"
-    }
+tasks.compileJava {
+    options.encoding = "UTF-8"
 }

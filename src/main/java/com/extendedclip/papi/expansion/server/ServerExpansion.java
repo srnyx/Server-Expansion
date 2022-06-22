@@ -58,11 +58,10 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 
 	// config stuff
 	private String serverName;
-	private String low = "&c";
-	private String medium = "&e";
-	private String high = "&a";
+	private String bad = "&c";
+	private String okay = "&e";
+	private String good = "&a";
 	private boolean isPaper = false;
-	private TickListener tickListener;
 	// -----
 	
 	private final Cache<String, Integer> cache = Caffeine.newBuilder()
@@ -72,9 +71,9 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 	@Override
 	public boolean canRegister() {
 		serverName = this.getString("server_name", "A Minecraft Server");
-		low = this.getString("tps_color.low", "&c");
-		medium = this.getString("tps_color.medium", "&e");
-		high = this.getString("tps_color.high", "&a");
+		bad = this.getString("color.bad", "&c");
+		okay = this.getString("color.okay", "&e");
+		good = this.getString("color.good", "&a");
 
 		try {
 			//noinspection ConstantConditions
@@ -82,9 +81,8 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 		} catch (ClassNotFoundException ignored) {}
 
 		if (isPaper) {
-			tickListener = new TickListener();
 			Plugin papi = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
-			if (papi != null) Bukkit.getPluginManager().registerEvents(tickListener, papi);
+			if (papi != null) Bukkit.getPluginManager().registerEvents(new MsptUtils(), papi);
 		}
 
 		return true;
@@ -115,72 +113,53 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 	@Override
 	public Map<String, Object> getDefaults() {
 		final Map<String, Object> defaults = new HashMap<>();
-		defaults.put("tps_color.high", "&a");
-		defaults.put("tps_color.medium", "&e");
-		defaults.put("tps_color.low", "&c");
+		defaults.put("color.good", "&a");
+		defaults.put("color.okay", "&e");
+		defaults.put("color.bad", "&c");
 		defaults.put("server_name", "A Minecraft Server");
 		return defaults;
 	}
 
 	@Override
 	public String onRequest(OfflinePlayer p, @NotNull String identifier) {
-		final int MB = 1048576;
 		if (serverUtils == null) serverUtils = new ServerUtils();
 
 		switch (identifier) {
 			// Players placeholders
-			case "online":
-				return String.valueOf(Bukkit.getOnlinePlayers().size());
-			case "max_players":
-				return String.valueOf(Bukkit.getMaxPlayers());
-			case "unique_joins":
-				return String.valueOf(Bukkit.getOfflinePlayers().length);
+			case "online": return String.valueOf(Bukkit.getOnlinePlayers().size());
+			case "max_players": return String.valueOf(Bukkit.getMaxPlayers());
+			case "unique_joins": return String.valueOf(Bukkit.getOfflinePlayers().length);
 			// -----
 
 			// Version placeholders
-			case "version":
-				return serverUtils.getVersion();
-			case "build":
-				return serverUtils.getBuild();
-			case "version_build":
-			case "version_full":
-				return serverUtils.getVersion() + '-' + serverUtils.getBuild();
+			case "version": return serverUtils.getVersion();
+			case "build": return serverUtils.getBuild();
+			case "version_build", "version_full": return serverUtils.getVersion() + '-' + serverUtils.getBuild();
 			// -----
 
 			// Ram placeholders
-			case "ram_used":
-				return String.valueOf((runtime.totalMemory() - runtime.freeMemory()) / MB);
-			case "ram_free":
-				return String.valueOf(runtime.freeMemory() / MB);
-			case "ram_total":
-				return String.valueOf(runtime.totalMemory() / MB);
-			case "ram_max":
-				return String.valueOf(runtime.maxMemory() / MB);
+			case "ram_used": return String.valueOf((runtime.totalMemory() - runtime.freeMemory()) / 1048576);
+			case "ram_free": return String.valueOf(runtime.freeMemory() / 1048576);
+			case "ram_total": return String.valueOf(runtime.totalMemory() / 1048576);
+			case "ram_max": return String.valueOf(runtime.maxMemory() / 1048576);
 			// -----
 
 			// Identity placeholders
-			case "name":
-				return serverName == null ? "" : serverName;
-			case "variant":
-				return serverUtils.getServerVariant();
+			case "name": return serverName == null ? "" : serverName;
+			case "variant": return serverUtils.getServerVariant();
 			// -----
 
 			// Other placeholders
-			case "tps":
-				return getTps(null);
-			case "mspt":
-			    return getMspt(null);
-			case "uptime":
+			case "tps": return getTps(null);
+			case "mspt": return getMspt(null);
+			case "uptime": {
 				long seconds = TimeUnit.MILLISECONDS.toSeconds(ManagementFactory.getRuntimeMXBean().getUptime());
 				return formatTime(Duration.of(seconds, ChronoUnit.SECONDS));
-			case "total_chunks":
-				return String.valueOf(cache.get("chunks", k -> getChunks()));
-			case "total_living_entities":
-				return String.valueOf(cache.get("livingEntities", k -> getLivingEntities()));
-			case "total_entities":
-				return String.valueOf(cache.get("totalEntities", k -> getTotalEntities()));
-			case "has_whitelist":
-				return Bukkit.getServer().hasWhitelist() ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
+			}
+			case "total_chunks": return String.valueOf(cache.get("chunks", k -> getChunks()));
+			case "total_living_entities": return String.valueOf(cache.get("livingEntities", k -> getLivingEntities()));
+			case "total_entities": return String.valueOf(cache.get("totalEntities", k -> getTotalEntities()));
+			case "has_whitelist": return Bukkit.getServer().hasWhitelist() ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
 		}
 
 		if (identifier.startsWith("tps_")) return getTps(identifier.replace("tps_", ""));
@@ -189,7 +168,9 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 
 		if (identifier.startsWith("online_")) {
 			int i = 0;
-			for (Player o : Bukkit.getOnlinePlayers()) if (o.getWorld().getName().equals(identifier.replace("online_", ""))) i++;
+			for (Player online : Bukkit.getOnlinePlayers()) {
+				if (online.getWorld().getName().equals(identifier.replace("online_", ""))) i++;
+			}
 			return String.valueOf(i);
 		}
 
@@ -197,40 +178,40 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 			String time = identifier.replace("countdown_", "");
 
 			if (!time.contains("_")) {
-				Date then;
+				final Date then;
 				try {
 					then = PlaceholderAPIPlugin.getDateFormat().parse(time);
 				} catch (Exception e) {
 					return null;
 				}
-				long between = then.getTime() - new Date().getTime();
 
-				if (between <= 0) return "0";
-				return formatTime(Duration.of((int) TimeUnit.MILLISECONDS.toSeconds(between), ChronoUnit.SECONDS));
-			} else {
-				String[] parts = PlaceholderAPI.setBracketPlaceholders(p, time).split("_");
-				if (parts.length != 2) return "invalid format and time";
-
-				time = parts[1];
-				SimpleDateFormat f;
-				try {
-					f = new SimpleDateFormat(parts[0]);
-				} catch (Exception e) {
-					return "invalid date format";
-				}
-
-				Date then;
-				try {
-					then = f.parse(time);
-				} catch (Exception e) {
-					return "invalid date";
-				}
-
-				long t = System.currentTimeMillis();
-				long between = then.getTime() - t;
+				final long between = then.getTime() - new Date().getTime();
 				if (between <= 0) return "0";
 				return formatTime(Duration.of((int) TimeUnit.MILLISECONDS.toSeconds(between), ChronoUnit.SECONDS));
 			}
+
+			final String[] parts = PlaceholderAPI.setBracketPlaceholders(p, time).split("_");
+			if (parts.length != 2) return "invalid format and time";
+
+			time = parts[1];
+			SimpleDateFormat format;
+			try {
+				format = new SimpleDateFormat(parts[0]);
+			} catch (Exception e) {
+				return "invalid date format";
+			}
+
+			final Date then;
+			try {
+				then = format.parse(time);
+			} catch (Exception e) {
+				return "invalid date";
+			}
+
+			long t = System.currentTimeMillis();
+			long between = then.getTime() - t;
+			if (between <= 0) return "0";
+			return formatTime(Duration.of((int) TimeUnit.MILLISECONDS.toSeconds(between), ChronoUnit.SECONDS));
 		}
 
 		if (identifier.startsWith("time_")) {
@@ -238,7 +219,7 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 			if (dateFormats.containsKey(identifier)) return dateFormats.get(identifier).format(new Date());
 
 			try {
-				SimpleDateFormat format = new SimpleDateFormat(identifier);
+				final SimpleDateFormat format = new SimpleDateFormat(identifier);
 				dateFormats.put(identifier, format);
 				return format.format(new Date());
 			} catch (NullPointerException | IllegalArgumentException ex) {
@@ -257,49 +238,25 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 		}
 
 		switch (arg) {
-			case "1":
-			case "one": 
-				return fix(serverUtils.getTps()[0]);
-			case "5":
-			case "five":
-				return fix(serverUtils.getTps()[1]);
-			case "15":
-			case "fifteen":
-				return fix(serverUtils.getTps()[2]);
-			case "1_colored":
-			case "one_colored":
-				return getColoredTps(serverUtils.getTps()[0]);
-			case "5_colored":
-			case "five_colored":
-				return getColoredTps(serverUtils.getTps()[1]);
-			case "15_colored":
-			case "fifteen_colored":
-				return getColoredTps(serverUtils.getTps()[2]);
+			case "1", "one": return fix(serverUtils.getTps()[0]);
+			case "5", "five": return fix(serverUtils.getTps()[1]);
+			case "15", "fifteen": return fix(serverUtils.getTps()[2]);
+			case "1_colored", "one_colored": return getColoredTps(serverUtils.getTps()[0]);
+			case "5_colored", "five_colored": return getColoredTps(serverUtils.getTps()[1]);
+			case "15_colored", "fifteen_colored": return getColoredTps(serverUtils.getTps()[2]);
 			case "percent": {
 				final StringJoiner joiner = new StringJoiner(ChatColor.GRAY + ", ");
-				for (double t : serverUtils.getTps()) joiner.add(getColoredTpsPercent(t));
+				for (final double t : serverUtils.getTps()) joiner.add(getColoredTpsPercent(t));
 				return joiner.toString();
 			}
-			case "1_percent":
-			case "one_percent":
-				return getPercent(serverUtils.getTps()[0]);
-			case "5_percent":
-			case "five_percent":
-				return getPercent(serverUtils.getTps()[1]);
-			case "15_percent":
-			case "fifteen_percent":
-				return getPercent(serverUtils.getTps()[2]);
-			case "1_percent_colored":
-			case "one_percent_colored":
-				return getColoredTpsPercent(serverUtils.getTps()[0]);
-			case "5_percent_colored":
-			case "five_percent_colored":
-				return getColoredTpsPercent(serverUtils.getTps()[1]);
-			case "15_percent_colored":
-			case "fifteen_percent_colored":
-				return getColoredTpsPercent(serverUtils.getTps()[2]);
+			case "1_percent", "one_percent": return getPercent(serverUtils.getTps()[0]);
+			case "5_percent", "five_percent": return getPercent(serverUtils.getTps()[1]);
+			case "15_percent", "fifteen_percent": return getPercent(serverUtils.getTps()[2]);
+			case "1_percent_colored", "one_percent_colored": return getColoredTpsPercent(serverUtils.getTps()[0]);
+			case "5_percent_colored", "five_percent_colored": return getColoredTpsPercent(serverUtils.getTps()[1]);
+			case "15_percent_colored", "fifteen_percent_colored": return getColoredTpsPercent(serverUtils.getTps()[2]);
+			default: return null;
 		}
-		return null;
 	}
 
 	/**
@@ -345,7 +302,10 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 	}
 	
 	private String color(double tps) {
-		return ChatColor.translateAlternateColorCodes('&', (tps > 18.0) ? high : (tps > 16.0) ? medium : low);
+		String color = bad;
+		if (tps > 16.0) color = okay;
+		if (tps > 18.0) color = good;
+		return ChatColor.translateAlternateColorCodes('&', color);
 	}
 	
 	private String getColoredTps(double tps) {
@@ -377,32 +337,29 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 	
 	private Integer getTotalEntities(){
 		int allEntities = 0;
-		for (World world : Bukkit.getWorlds()) {
+		for (final World world : Bukkit.getWorlds()) {
 			allEntities += world.getEntities().size();
 		}
 		return allEntities;
 	}
 
 	private static double round(double value) {
-		int scale = (int) Math.pow(10, 1);
+		final int scale = (int) Math.pow(10, 1);
 		return (double) Math.round(value * scale) / scale;
 	}
 
-	private String colorMspt(double mspt) {
-		return ChatColor.translateAlternateColorCodes('&', (mspt < 25.0) ? high : (mspt < 50.0) ? medium : low) + mspt;
-	}
-
 	public String getMspt(String arg) {
-		int idx = 0;
-		boolean colored = false;
+		double mspt = round(MsptUtils.getMspt());
+		if (mspt > 1000000) mspt = 0.0;
 
-		if (!(arg == null || arg.isEmpty())) {
-			colored = arg.endsWith("_colored") || arg.equals("colored");
-			if (arg.startsWith("10s")) idx = 1;
-			if (arg.startsWith("1m")) idx = 2;
+		if (arg != null && arg.equals("colored")) {
+			String color = bad;
+			if (mspt < 50.0) color = okay;
+			if (mspt < 25.0) color = good;
+
+			return ChatColor.translateAlternateColorCodes('&', color) + mspt;
 		}
 
-		double mspt = round(tickListener.getAverages()[idx]);
-		return colored ? colorMspt(mspt) : String.valueOf(mspt);
+		return String.valueOf(mspt);
 	}
 }

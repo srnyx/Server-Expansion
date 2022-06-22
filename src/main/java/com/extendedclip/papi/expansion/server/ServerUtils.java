@@ -1,6 +1,7 @@
 package com.extendedclip.papi.expansion.server;
 
 import me.clip.placeholderapi.PlaceholderAPIPlugin;
+
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
@@ -10,8 +11,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 public final class ServerUtils {
-    
     private String version = null;
     private String build = null;
     private String variant = null;
@@ -22,13 +23,12 @@ public final class ServerUtils {
     private Field tps = null;
     
     private boolean hasTpsMethod = false;
-    
+
+
     @SuppressWarnings("unused")
     public ServerUtils() {
         variants.put("Spigot", "org.spigotmc.SpigotConfig");
         variants.put("Paper", "com.destroystokyo.paper.PaperConfig");
-        variants.put("Tuinity", "com.tuinity.tuinity.config.TuinityConfig");
-        variants.put("Airplane", "gg.airplane.AirplaneConfig");
         variants.put("Purpur", "net.pl3x.purpur.PurpurConfig");
         
         resolveTPSHandler();
@@ -37,62 +37,61 @@ public final class ServerUtils {
     public String getServerVariant() {
         if (variant != null) return variant;
 
-        for (Map.Entry<String, String> variant : variants.entrySet()) {
+        for (final Map.Entry<String, String> variantSet : variants.entrySet()) {
             try {
-                Class.forName(variant.getValue());
-                return (this.variant = variant.getKey());
-            } catch (ClassNotFoundException ignored) {} 
+                Class.forName(variantSet.getValue());
+                final String key = variantSet.getKey();
+                variant = key;
+                return key;
+            } catch (ClassNotFoundException ignored) {}
         }
         
-        return this.variant = "Unknown";
+        variant = "Unknown";
+        return variant;
     }
     
     public String getVersion() {
-        if (version != null) {
-            return version;
-        }
-        
-        return (version = Bukkit.getBukkitVersion().split("-")[0]);
+        if (version != null) return version;
+        version = Bukkit.getBukkitVersion().split("-")[0];
+        return version;
     }
     
     public String getBuild() {
-        if (build != null) {
-            return build;
-        }
+        if (build != null) return build;
         
-        String[] buildParts = Bukkit.getVersion().split("-");
+        final String[] split = Bukkit.getVersion().split("-");
         switch (getServerVariant().toLowerCase(Locale.ROOT)) {
-            case "spigot":
-            // TODO: Find out what those variants return.
-            case "tuinity":
-            case "airplane":
-            case "purpur":
-                return (build = buildParts[0]);
-            
-            case "paper":
-                if (buildParts.length >= 3) {
-                    if (buildParts[2].contains(" ")) {
-                        return (build = buildParts[2].substring(0, buildParts[2].indexOf(" ")));
-                    } else {
-                        return (build = buildParts[2]);
+            // TODO Find out what those variants return.
+            case "spigot", "purpur" -> {
+                build = split[0];
+                return build;
+            }
+
+            case "paper" -> {
+                if (split.length >= 3) {
+                    if (split[2].contains(" ")) {
+                        build = split[2].substring(0, split[2].indexOf(" "));
+                        return build;
                     }
-                } else {
-                    return (build = "Unknown");
+
+                    build = split[2];
+                    return build;
                 }
-            
-            default:
-                return (build = "Unknown");
+
+                build = "Unknown";
+                return build;
+            }
+
+            default -> {
+                build = "Unknown";
+                return build;
+            }
         }
     }
     
     public double[] getTps() {
-        if (hasTpsMethod) {
-            return Bukkit.getTPS();
-        }
-        
-        if (craftServer == null || tps == null) {
-            return new double[]{0, 0, 0};
-        }
+        if (hasTpsMethod) return Bukkit.getTPS();
+        if (craftServer == null || tps == null) return new double[]{0, 0, 0};
         
         try {
             return (double[]) tps.get(craftServer);
@@ -113,10 +112,11 @@ public final class ServerUtils {
                 if (getMajorVersion() >= 17) {
                     craftServer = Class.forName("net.minecraft.server.MinecraftServer")
                         .getMethod("getServer").invoke(null);
-                } else {
-                    craftServer = Class.forName("net.minecraft.server." + mcVersion + ".MinecraftServer")
-                        .getMethod("getServer").invoke(null);
+                    return;
                 }
+
+                craftServer = Class.forName("net.minecraft.server." + mcVersion + ".MinecraftServer")
+                        .getMethod("getServer").invoke(null);
                 
                 tps = craftServer.getClass().getField("recentTps");
             } catch (Exception ex) {
@@ -129,13 +129,12 @@ public final class ServerUtils {
     private int getMajorVersion() {
         final Matcher matcher = Pattern.compile("\\(MC: (\\d)\\.(\\d+)\\.?(\\d+?)?\\)").matcher(Bukkit.getVersion());
         if (matcher.find()) {
-            try{
+            try {
                 return Integer.parseInt(matcher.toMatchResult().group(2), 10);
             } catch (NumberFormatException ignored) {
                 return -1;
             }
-        } else {
-            return -1;
         }
+        return -1;
     }
 }
