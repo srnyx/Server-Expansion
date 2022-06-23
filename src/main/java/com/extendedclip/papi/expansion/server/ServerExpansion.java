@@ -349,17 +349,52 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 	}
 
 	public String getMspt(String arg) {
-		double mspt = round(MsptUtils.getMspt());
-		if (mspt > 1000000) mspt = 0.0;
+		if (arg == null) return String.valueOf(getMspt1Second());
 
-		if (arg != null && arg.equals("colored")) {
-			String color = bad;
-			if (mspt < 50.0) color = okay;
-			if (mspt < 25.0) color = good;
+		return switch (arg) {
+			case "1", "one" -> String.valueOf(getMspt1Minute());
+			case "5", "five" -> String.valueOf(getMspt5Minutes());
+			case "10", "ten" -> String.valueOf(getMspt10Minutes());
+			case "colored" -> getColoredMspt(getMspt1Second());
+			case "1_colored", "one_colored" -> getColoredMspt(getMspt1Minute());
+			case "5_colored", "five_colored" -> getColoredTps(getMspt5Minutes());
+			case "10_colored", "ten_colored" -> getColoredTps(getMspt10Minutes());
+			default -> String.valueOf(getMspt1Second());
+		};
+	}
 
-			return ChatColor.translateAlternateColorCodes('&', color) + mspt;
-		}
+	/**
+	 * @return  The average MSPT of the last 20 ticks (1 second)
+	 */
+	public double getMspt1Second() {
+		return MsptUtils.getMspt(20);
+	}
 
-		return String.valueOf(mspt);
+	/**
+	 * @return  The average MSPT of the last 1,200 ticks (1 minute)
+	 */
+	public double getMspt1Minute() {
+		return MsptUtils.getMspt(1200);
+	}
+
+	/**
+	 * @return  The average MSPT of the last 6,000 ticks (5 minutes)
+	 */
+	public double getMspt5Minutes() {
+		return MsptUtils.getMspt(6000);
+	}
+
+	/**
+	 * @return  The average MSPT of the last 12,000 ticks (10 minutes)
+	 */
+	public double getMspt10Minutes() {
+		return MsptUtils.getMspt(12000);
+	}
+
+	private String getColoredMspt(double mspt) {
+		String color = bad;
+		if (mspt < 50.0) color = okay;
+		if (mspt < 25.0) color = good;
+		return ChatColor.translateAlternateColorCodes('&', color) + mspt;
 	}
 }
