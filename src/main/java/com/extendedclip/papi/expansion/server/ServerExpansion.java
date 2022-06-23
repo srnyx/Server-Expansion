@@ -39,6 +39,9 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.management.ManagementFactory;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -78,7 +81,9 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 		try {
 			//noinspection ConstantConditions
 			isPaper = Class.forName("com.destroystokyo.paper.VersionHistoryManager$VersionData") != null;
-		} catch (ClassNotFoundException ignored) {}
+		} catch (ClassNotFoundException ignored) {
+			// ignored
+		}
 
 		if (isPaper) {
 			Plugin papi = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
@@ -160,6 +165,8 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 			case "total_living_entities": return String.valueOf(cache.get("livingEntities", k -> getLivingEntities()));
 			case "total_entities": return String.valueOf(cache.get("totalEntities", k -> getTotalEntities()));
 			case "has_whitelist": return Bukkit.getServer().hasWhitelist() ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
+
+			default: break;
 		}
 
 		if (identifier.startsWith("tps_")) return getTps(identifier.replace("tps_", ""));
@@ -349,18 +356,30 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 	}
 
 	public String getMspt(String arg) {
-		if (arg == null) return String.valueOf(getMspt1Second());
+		if (arg == null) return mspt(getMspt1Second());
 
 		return switch (arg) {
-			case "1", "one" -> String.valueOf(getMspt1Minute());
-			case "5", "five" -> String.valueOf(getMspt5Minutes());
-			case "10", "ten" -> String.valueOf(getMspt10Minutes());
+			case "5", "five" -> mspt(getMspt5Minutes());
+			case "10", "ten" -> mspt(getMspt10Minutes());
 			case "colored" -> getColoredMspt(getMspt1Second());
 			case "1_colored", "one_colored" -> getColoredMspt(getMspt1Minute());
 			case "5_colored", "five_colored" -> getColoredTps(getMspt5Minutes());
 			case "10_colored", "ten_colored" -> getColoredTps(getMspt10Minutes());
-			default -> String.valueOf(getMspt1Second());
+			default -> mspt(getMspt1Second());
 		};
+	}
+
+	private String mspt(double mspt) {
+		return new DecimalFormat("0.00").format(BigDecimal.valueOf(mspt).setScale(2, RoundingMode.FLOOR));
+	}
+
+	/**
+	 * @param   seconds The number of seconds to get the average MSPT from. Numbers less than 1 will return 0 and numbers grater than 600 will only return 600 seconds worth of data.
+	 *
+	 * @return          The average MSPT of the last {@code seconds} seconds.
+	 */
+	public static double getMsptSeconds(int seconds) {
+		return MsptUtils.getMspt(seconds * 20);
 	}
 
 	/**
@@ -395,6 +414,6 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 		String color = bad;
 		if (mspt < 50.0) color = okay;
 		if (mspt < 25.0) color = good;
-		return ChatColor.translateAlternateColorCodes('&', color) + mspt;
+		return ChatColor.translateAlternateColorCodes('&', color)+ new DecimalFormat("0.00").format(BigDecimal.valueOf(mspt).setScale(2, RoundingMode.FLOOR));
 	}
 }

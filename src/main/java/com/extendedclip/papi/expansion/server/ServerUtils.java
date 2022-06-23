@@ -43,7 +43,9 @@ public final class ServerUtils {
                 final String key = variantSet.getKey();
                 variant = key;
                 return key;
-            } catch (ClassNotFoundException ignored) {}
+            } catch (ClassNotFoundException ignored) {
+                // ignored
+            }
         }
         
         variant = "Unknown";
