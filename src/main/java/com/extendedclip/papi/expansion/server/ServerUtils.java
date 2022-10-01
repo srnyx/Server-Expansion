@@ -17,8 +17,6 @@ public final class ServerUtils {
     private String build = null;
     private String variant = null;
     
-    private final Map<String, String> variants = new HashMap<>();
-    
     private Object craftServer = null;
     private Field tps = null;
     
@@ -27,28 +25,33 @@ public final class ServerUtils {
 
     @SuppressWarnings("unused")
     public ServerUtils() {
-        variants.put("Spigot", "org.spigotmc.SpigotConfig");
-        variants.put("Paper", "com.destroystokyo.paper.PaperConfig");
-        variants.put("Purpur", "net.pl3x.purpur.PurpurConfig");
-        
         resolveTPSHandler();
     }
     
+    private Map<String, String> getVariants() {
+        final Map<String, String> variants = new HashMap<>();
+        variants.put("org.spigotmc.SpigotConfig", "Spigot");
+        variants.put("io.papermc.paper.configuration.ConfigurationLoaders", "Paper"); // New config location for Paper 1.19+
+        variants.put("com.destroystokyo.paper.PaperConfig", "Paper"); // Still supported by Paper, but deprecated.
+        variants.put("com.tuinity.tuinity.config.TuinityConfig", "Tuinity");
+        variants.put("gg.airplane.AirplaneConfig", "Airplane");
+        variants.put("net.pl3x.purpur.PurpurConfig", "Purpur");
+        return variants;
+    }
+
     public String getServerVariant() {
         if (variant != null) return variant;
 
-        for (final Map.Entry<String, String> variantSet : variants.entrySet()) {
+        for (final Map.Entry<String, String> variants : getVariants().entrySet()) {
             try {
-                Class.forName(variantSet.getValue());
-                final String key = variantSet.getKey();
-                variant = key;
-                return key;
+                Class.forName(variants.getKey());
+                variant = variants.getValue();
             } catch (ClassNotFoundException ignored) {
                 // ignored
             }
         }
         
-        variant = "Unknown";
+        if (variant == null) variant = "Unknown";
         return variant;
     }
     
