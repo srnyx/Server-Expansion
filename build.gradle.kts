@@ -33,7 +33,6 @@ tasks {
 
     // Disable unnecessary tasks
     classes { enabled = false }
-    jar { enabled = false }
     compileTestJava { enabled = false }
     processTestResources { enabled = false }
     testClasses { enabled = false }
