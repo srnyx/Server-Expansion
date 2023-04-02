@@ -1,10 +1,8 @@
-description = "PAPI-Expansion-Server"
-version = "2.6.4"
+version = "2.6.5"
 group = "com.extendedclip.papi.expansion.server"
 
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 repositories {
@@ -13,12 +11,32 @@ repositories {
 }
 
 dependencies {
-    compileOnly("me.clip:placeholderapi:2.11.2")
-    compileOnly("io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT")
-    implementation("com.github.ben-manes.caffeine:caffeine:3.1.1")
+    compileOnly("com.destroystokyo.paper", "paper-api", "1.13.2-R0.1-SNAPSHOT")
+    compileOnly("me.clip", "placeholderapi", "2.11.3")
 }
 
+tasks {
+    // Clean up the build folder
+    build {
+        doLast {
+			// Delete all folders in the build directory besides libs
+			file("build").listFiles()?.forEach {
+				if (it.isDirectory && it.name != "libs") it.deleteRecursively()
+			}
+        }
+    }
 
-tasks.compileJava {
-    options.encoding = "UTF-8"
+    // Text encoding
+    compileJava {
+        options.encoding = "UTF-8"
+    }
+
+    // Disable unnecessary tasks
+    classes { enabled = false }
+    jar { enabled = false }
+    compileTestJava { enabled = false }
+    processTestResources { enabled = false }
+    testClasses { enabled = false }
+    test { enabled = false }
+    check { enabled = false }
 }

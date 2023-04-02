@@ -7,11 +7,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
+import org.jetbrains.annotations.NotNull;
+
 
 public class MsptUtils implements Listener {
     // MSPT will be calculated by tracking the MSPT of 20 ticks and averaging those
-    @SuppressWarnings("CanBeFinal")
-    static long[] msptTick = new long[20 * 60 * 10];
+    private static final long[] msptTick = new long[20 * 60 * 10];
 
     /**
      * @param   ticks   The number of ticks to get the average MSPT for. Must be between 0 and 12,000, inclusive.
@@ -43,11 +44,8 @@ public class MsptUtils implements Listener {
         return (double) total / ticksRecorded / 1000000;
     }
 
-
-    // Listeners for tick timings
-
     @EventHandler(priority = EventPriority.LOWEST)
-    void onTickStart(ServerTickStartEvent event) {
+    public void onTickStart(@NotNull ServerTickStartEvent event) {
         if (msptTick[0] > 100000000000L) msptTick[0] = 0;
 
         // Shift the array right
@@ -59,7 +57,7 @@ public class MsptUtils implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    void onTickEnd(ServerTickEndEvent e) {
+    public void onTickEnd(@NotNull ServerTickEndEvent e) {
         // Set the first value in the array to the time it took to complete the tick
         msptTick[0] = System.nanoTime() - msptTick[0];
     }
