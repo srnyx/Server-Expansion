@@ -13,6 +13,7 @@ repositories {
 dependencies {
     compileOnly("com.destroystokyo.paper", "paper-api", "1.13.2-R0.1-SNAPSHOT")
     compileOnly("me.clip", "placeholderapi", "2.11.3")
+    implementation("org.jetbrains:annotations:24.0.0")
 }
 
 tasks {

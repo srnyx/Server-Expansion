@@ -140,85 +140,48 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 
 		switch (identifier) {
 			// Players placeholders
-			case "online" -> {
-				return String.valueOf(Bukkit.getOnlinePlayers().size());
-			}
-			case "max_players" -> {
-				return String.valueOf(Bukkit.getMaxPlayers());
-			}
-			case "unique_joins" -> {
-				return String.valueOf(Bukkit.getOfflinePlayers().length);
-			}
+			case "online": return String.valueOf(Bukkit.getOnlinePlayers().size());
+			case "max_players": return String.valueOf(Bukkit.getMaxPlayers());
+			case "unique_joins": return String.valueOf(Bukkit.getOfflinePlayers().length);
 
 			// Version placeholders
-			case "version" -> {
-				return serverUtils.getVersion();
-			}
-			case "build" -> {
-				return serverUtils.getBuild();
-			}
-			case "version_build", "version_full" -> {
-				return serverUtils.getVersion() + '-' + serverUtils.getBuild();
-			}
+			case "version": return serverUtils.getVersion();
+			case "build": return serverUtils.getBuild();
+			case "version_build":
+			case "version_full": return serverUtils.getVersion() + '-' + serverUtils.getBuild();
 
 			// Ram placeholders
-			case "ram_used" -> {
-				return String.valueOf((runtime.totalMemory() - runtime.freeMemory()) / 1048576);
-			}
-			case "ram_free" -> {
-				return String.valueOf(runtime.freeMemory() / 1048576);
-			}
-			case "ram_total" -> {
-				return String.valueOf(runtime.totalMemory() / 1048576);
-			}
-			case "ram_max" -> {
-				return String.valueOf(runtime.maxMemory() / 1048576);
-			}
+			case "ram_used": return String.valueOf((runtime.totalMemory() - runtime.freeMemory()) / 1048576);
+			case "ram_free": return String.valueOf(runtime.freeMemory() / 1048576);
+			case "ram_total": return String.valueOf(runtime.totalMemory() / 1048576);
+			case "ram_max": return String.valueOf(runtime.maxMemory() / 1048576);
 
 			// Identity placeholders
-			case "name" -> {
-				return serverName == null ? "" : serverName;
-			}
-			case "variant" -> {
-				return serverUtils.getServerVariant();
-			}
+			case "name": return serverName == null ? "" : serverName;
+			case "variant": return serverUtils.getServerVariant();
 
 			// Other placeholders
-			case "tps" -> {
-				return getTps(null);
+			case "tps": return getTps(null);
+			case "mspt": return getMspt(null);
+			case "uptime": {
+				long seconds=TimeUnit.MILLISECONDS.toSeconds(ManagementFactory.getRuntimeMXBean().getUptime());
+				return formatTime(Duration.of(seconds,ChronoUnit.SECONDS));
 			}
-			case "mspt" -> {
-				return getMspt(null);
-			}
-			case "uptime" -> {
-				long seconds = TimeUnit.MILLISECONDS.toSeconds(ManagementFactory.getRuntimeMXBean().getUptime());
-				return formatTime(Duration.of(seconds, ChronoUnit.SECONDS));
-			}
-			case "total_chunks" -> {
-				return getCached("chunks", () -> Bukkit.getWorlds()
-						.stream()
-						.mapToInt(world -> world.getLoadedChunks().length)
-						.sum());
-			}
-			case "total_living_entities" -> {
-				return getCached("livingEntities", () -> Bukkit.getWorlds()
-						.stream()
-						.mapToInt(world -> world.getLivingEntities().size())
-						.sum());
-			}
-			case "total_entities" -> {
-				return getCached("totalEntities", () -> Bukkit.getWorlds()
-						.stream()
-						.mapToInt(world -> world.getEntities().size())
-						.sum());
-			}
-			case "has_whitelist" -> {
-				return Bukkit.getServer().hasWhitelist() ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
-			}
+			case "total_chunks": return getCached("chunks", () -> Bukkit.getWorlds()
+					.stream()
+					.mapToInt(world -> world.getLoadedChunks().length)
+					.sum());
+			case "total_living_entities": return getCached("livingEntities", () -> Bukkit.getWorlds()
+					.stream()
+					.mapToInt(world -> world.getLivingEntities().size())
+					.sum());
+			case "total_entities": return getCached("totalEntities", () -> Bukkit.getWorlds()
+					.stream()
+					.mapToInt(world -> world.getEntities().size())
+					.sum());
+			case "has_whitelist": return Bukkit.getServer().hasWhitelist() ? PlaceholderAPIPlugin.booleanTrue() : PlaceholderAPIPlugin.booleanFalse();
 
-			default -> {
-				// Do nothing
-			}
+			default: break;
 		}
 
 		if (identifier.startsWith("tps_")) return getTps(identifier.replace("tps_", ""));
@@ -297,50 +260,36 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 		}
 
 		switch (arg) {
-			case "1", "one" -> {
-				return fix(serverUtils.getTps()[0]);
-			}
-			case "5", "five" -> {
-				return fix(serverUtils.getTps()[1]);
-			}
-			case "15", "fifteen" -> {
-				return fix(serverUtils.getTps()[2]);
-			}
-			case "1_colored", "one_colored" -> {
-				return getColoredTps(serverUtils.getTps()[0]);
-			}
-			case "5_colored", "five_colored" -> {
-				return getColoredTps(serverUtils.getTps()[1]);
-			}
-			case "15_colored", "fifteen_colored" -> {
-				return getColoredTps(serverUtils.getTps()[2]);
-			}
-			case "percent" -> {
+			case "1":
+			case "one": return fix(serverUtils.getTps()[0]);
+			case "5":
+			case "five": return fix(serverUtils.getTps()[1]);
+			case "15":
+			case "fifteen": return fix(serverUtils.getTps()[2]);
+			case "1_colored":
+			case "one_colored": return getColoredTps(serverUtils.getTps()[0]);
+			case "5_colored":
+			case "five_colored": return getColoredTps(serverUtils.getTps()[1]);
+			case "15_colored":
+			case "fifteen_colored": return getColoredTps(serverUtils.getTps()[2]);
+			case "percent": {
 				final StringJoiner joiner = new StringJoiner(ChatColor.GRAY + ", ");
 				for (final double t : serverUtils.getTps()) joiner.add(getColoredTpsPercent(t));
 				return joiner.toString();
 			}
-			case "1_percent", "one_percent" -> {
-				return getPercent(serverUtils.getTps()[0]);
-			}
-			case "5_percent", "five_percent" -> {
-				return getPercent(serverUtils.getTps()[1]);
-			}
-			case "15_percent", "fifteen_percent" -> {
-				return getPercent(serverUtils.getTps()[2]);
-			}
-			case "1_percent_colored", "one_percent_colored" -> {
-				return getColoredTpsPercent(serverUtils.getTps()[0]);
-			}
-			case "5_percent_colored", "five_percent_colored" -> {
-				return getColoredTpsPercent(serverUtils.getTps()[1]);
-			}
-			case "15_percent_colored", "fifteen_percent_colored" -> {
-				return getColoredTpsPercent(serverUtils.getTps()[2]);
-			}
-			default -> {
-				return null;
-			}
+			case "1_percent":
+			case "one_percent": return getPercent(serverUtils.getTps()[0]);
+			case "5_percent":
+			case "five_percent": return getPercent(serverUtils.getTps()[1]);
+			case "15_percent":
+			case "fifteen_percent": return getPercent(serverUtils.getTps()[2]);
+			case "1_percent_colored":
+			case "one_percent_colored": return getColoredTpsPercent(serverUtils.getTps()[0]);
+			case "5_percent_colored":
+			case "five_percent_colored": return getColoredTpsPercent(serverUtils.getTps()[1]);
+			case "15_percent_colored":
+			case "fifteen_percent_colored": return getColoredTpsPercent(serverUtils.getTps()[2]);
+			default: return null;
 		}
 	}
 
@@ -413,16 +362,20 @@ public class ServerExpansion extends PlaceholderExpansion implements Cacheable, 
 
 	public String getMspt(String arg) {
 		if (arg == null) return mspt(getMspt1Second());
-
-		return switch (arg) {
-			case "5", "five" -> mspt(getMspt5Minutes());
-			case "10", "ten" -> mspt(getMspt10Minutes());
-			case "colored" -> getColoredMspt(getMspt1Second());
-			case "1_colored", "one_colored" -> getColoredMspt(MsptUtils.getMspt(1200));
-			case "5_colored", "five_colored" -> getColoredTps(getMspt5Minutes());
-			case "10_colored", "ten_colored" -> getColoredTps(getMspt10Minutes());
-			default -> mspt(getMspt1Second());
-		};
+		switch (arg) {
+			case "5":
+			case "five": return mspt(getMspt5Minutes());
+			case "10":
+			case "ten": return mspt(getMspt10Minutes());
+			case "colored": return getColoredMspt(getMspt1Second());
+			case "1_colored":
+			case "one_colored": return getColoredMspt(MsptUtils.getMspt(1200));
+			case "5_colored":
+			case "five_colored": return getColoredTps(getMspt5Minutes());
+			case "10_colored":
+			case "ten_colored": return getColoredTps(getMspt10Minutes());
+			default: return mspt(getMspt1Second());
+		}
 	}
 
 	@NotNull

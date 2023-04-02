@@ -100,9 +100,13 @@ public final class ServerUtils {
         final String[] split = Bukkit.getVersion().split("-");
         switch (getServerVariant().toLowerCase(Locale.ROOT)) {
             // TODO Find out what those variants return.
-            case "spigot", "purpur" -> build = split[0];
+            case "spigot":
+            case "purpur": {
+                build = split[0];
+                break;
+            }
 
-            case "paper" -> {
+            case "paper": {
                 if (split.length >= 3) {
                     if (split[2].contains(" ")) {
                         build = split[2].substring(0, split[2].indexOf(" "));
@@ -112,9 +116,10 @@ public final class ServerUtils {
                     break;
                 }
                 build = "Unknown";
+                break;
             }
 
-            default -> build = "Unknown";
+            default: build = "Unknown";
         }
         return build;
     }
