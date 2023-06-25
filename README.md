@@ -11,7 +11,7 @@ Read the [placeholder page](https://helpch.at/placeholders#server) for a list of
 %server_mspt_colored%
 ```
 - Removes the `*` when TPS goes above 20
-- Uses Gradle
+- Uses Gradle with Gradle Galaxy plugin
 - Has GitHub workflows/actions
 - General code improvements
 
